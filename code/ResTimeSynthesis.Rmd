@@ -1,0 +1,128 @@
+---
+title: "Residence Time Synthesis"
+author: "Emmi Mueller"
+date: "7/8/2020"
+output: pdf_document
+---
+
+```{r}
+rm(list=ls())
+
+package.list <- c('plyr', 'grid', 'png', 'ggplot2', 'tidyverse', 'here', 'ggpmisc', 'Hmisc', 'ggsignif', 'ggpubr') 
+for (package in package.list) {
+  if (!require(package, character.only=T, quietly=T)) { 
+    install.packages(package)
+    library(package, character.only=T)
+  } }
+
+here()
+```
+
+```{r figure_setup}
+my.cols <- RColorBrewer::brewer.pal(n = 4, name = "Greys")[3:4]
+
+# Set theme for figures in the paper
+theme_set(theme_classic() + 
+  theme(axis.title = element_text(size = 15),
+        axis.title.x = element_text(margin = margin(t = 15, b = 15)),
+        axis.title.y = element_text(margin = margin(l = 15, r = 15)),
+        axis.text = element_text(size = 15),
+        axis.text.x = element_text(margin = margin(t = 5)),
+        axis.text.y = element_text(margin = margin(r = 5)),
+        axis.line.x = element_blank(),
+        axis.line.y = element_blank(),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 1),
+        axis.ticks.length = unit(.1, "in"),
+        panel.border = element_rect(color = "black", fill = NA, size = 1.5),
+        legend.title = element_text(size = 20),
+        legend.text = element_text(size = 15),
+        strip.text = element_text(size = 20),
+        strip.background = element_blank()
+        ))
+```
+
+#Lake Data
+
+#Questions for Jay:
+#-Why only 127 listings? Removing outliers? Does that change for RT and TO?
+#-Is all this data from Wikipedia?
+
+```{r}
+ecosystems <- read.csv(here("data","Ecosystem_Tau.csv"), header = TRUE, sep = ",")
+ecosystems$Ecosystem <- reorder(ecosystems$Ecosystem, ecosystems$Tau_d, mean)
+levels(ecosystems$Ecosystem)
+
+RT <- ggplot(data = ecosystems, mapping = aes (x = Ecosystem, y= log(Tau_d, 10)))+
+  geom_boxplot()+
+  xlab("Ecosystem type")+
+  ylab("Residence Time (log(days))")+
+  theme(axis.text = element_text(size = 12))+
+  annotate(geom = "text", x = 1, y = 6, label = paste("N = ", nrow(ecosystems)), size = 8)
+
+RT
+
+ggsave("../output/Ecosystem_turnover.pdf", width = 15, height = 10)
+ggsave("../output/Ecosystem_turnover.png", width = 15, height = 10)
+
+RT_jitter <- ggplot(data = ecosystems, mapping = aes(x = Ecosystem, y = log(Tau_d, 10)))+
+  geom_violin()+
+  geom_point()+
+  xlab("Ecosystem type")+
+  ylab("Residence Time (log(days))")+
+  theme(axis.text = element_text(size = 12))+
+  annotate(geom = "text", x = 1, y = 6, label = paste("N = ", nrow(ecosystems)), size = 8)
+
+RT_jitter
+
+ggsave("../output/Ecosystem_RT.pdf", width = 15, height = 10)
+ggsave("../output/Ecosystem_RT.png", width = 15, height = 10)
+
+RT_Eco <- ggplot(data = ecosystems, mapping = aes(x = Ecosystem))+
+  geom_bar()+
+  theme(axis.text = element_text(size = 12))
+
+RT_Eco
+
+ggsave("../output/Ecosystem_counts.pdf", width = 15, height = 10)
+ggsave("../output/Ecosystem_counts.png", width = 15, height = 10)
+
+RT_Method <- ggplot(data = ecosystems, mapping = aes(x = Method))+
+  geom_bar()+
+  theme(axis.text = element_text(size = 12))
+
+RT_Method
+
+ggsave("../output/Method_counts.pdf", width = 15, height = 10)
+ggsave("../output/Method_counts.png", width = 15, height = 10)
+
+RT_Matrix <- ggplot(data = ecosystems, mapping = aes(x = Matrix, fill = Ecosystem))+
+  geom_bar()+
+  theme(axis.text = element_text(size = 12))
+
+RT_Matrix
+
+ggsave("../output/Matrix_counts.pdf", width = 15, height = 10)
+ggsave("../output/Matrix_counts.png", width = 15, height = 10)
+
+
+RT_year <- ggplot(data = ecosystems, mapping = aes(x = Year, fill = Ecosystem))+
+  geom_histogram()+
+  theme(axis.text = element_text(size = 12))
+
+RT_year
+
+ggsave("../output/Year_counts.pdf", width = 15, height = 10)
+ggsave("../output/Year_counts.png", width = 15, height = 10)
+```
+
+#Bonus code
+```{r}
+
+boxplot(log(Turnover_Time)~Ecosystem,lakes=Turnover, yaxt="n", xlab ="Ecosystem", ylab = "Biomass Turnover Time (d)")
+aty <- axTicks(2)
+labels <- sapply(aty,function(i)
+            as.expression(bquote(10^ .(i)))
+          )
+axis(2,at=aty,labels=labels)
+```
